@@ -1,0 +1,5 @@
+python-oslo-log (0.1.0-1) experimental; urgency=medium
+
+  * Initial release. (Closes: #776109)
+
+ -- Thomas Goirand <zigo@debian.org>  Sat, 24 Jan 2015 01:49:42 +0100
