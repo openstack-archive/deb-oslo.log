@@ -1,13 +1,5 @@
-python-oslo-log (0.2.0-1) UNRELEASED; urgency=medium
-
-  * New upstream release.
-  * Now packaging as python-oslo.log.
-  * Fixed (build-)depends for this release.
-
- -- Thomas Goirand <zigo@debian.org>  Tue, 10 Feb 2015 14:58:25 +0100
-
-python-oslo-log (0.1.0-1) experimental; urgency=medium
+python-oslo.log (0.2.0-1) UNRELEASED; urgency=medium
 
   * Initial release. (Closes: #776109)
 
- -- Thomas Goirand <zigo@debian.org>  Sat, 24 Jan 2015 01:49:42 +0100
+ -- Thomas Goirand <zigo@debian.org>  Tue, 10 Feb 2015 14:58:25 +0100
