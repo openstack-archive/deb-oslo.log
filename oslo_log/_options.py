@@ -12,7 +12,7 @@
 
 import copy
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 _DEFAULT_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -90,6 +90,8 @@ DEFAULT_LOG_LEVELS = ['amqp=WARN', 'amqplib=WARN', 'boto=WARN',
                       'oslo.messaging=INFO', 'iso8601=WARN',
                       'requests.packages.urllib3.connectionpool=WARN',
                       'urllib3.connectionpool=WARN', 'websocket=WARN',
+                      'requests.packages.urllib3.util.retry=WARN',
+                      'urllib3.util.retry=WARN',
                       "keystonemiddleware=WARN", "routes.middleware=WARN",
                       "stevedore=WARN"]
 

@@ -20,12 +20,12 @@ import sys
 import tempfile
 
 import mock
-from oslo.config import cfg
-from oslo.config import fixture as fixture_config  # noqa
-from oslo.i18n import fixture as fixture_trans
-from oslo.serialization import jsonutils
+from oslo_config import cfg
+from oslo_config import fixture as fixture_config  # noqa
 from oslo_context import context
 from oslo_context import fixture as fixture_context
+from oslo_i18n import fixture as fixture_trans
+from oslo_serialization import jsonutils
 from oslotest import base as test_base
 import six
 
@@ -483,6 +483,36 @@ class FancyRecordTestCase(LogTestBase):
         infoexpected = "%s [%s]: [fake_resource-202260f9-1224-490d-"\
                        "afaf-6a744c13141f] info\n" % (infocolor,
                                                       ctxt.request_id)
+        self.assertEqual(infoexpected, self.stream.getvalue())
+
+
+class InstanceRecordTestCase(LogTestBase):
+    def setUp(self):
+        super(InstanceRecordTestCase, self).setUp()
+        self.config(logging_context_format_string="[%(request_id)s]: "
+                                                  "%(instance)s"
+                                                  "%(resource)s"
+                                                  "%(message)s",
+                    logging_default_format_string="%(instance)s"
+                                                  "%(resource)s"
+                                                  "%(message)s")
+        self.log = log.getLogger()
+        self._add_handler_with_cleanup(self.log)
+        self._set_log_level_with_cleanup(self.log, logging.DEBUG)
+
+    def test_instance_dict_in_context_log_msg(self):
+        ctxt = _fake_context()
+        fake_resource = {'uuid': 'C9B7CCC6-8A12-4C53-A736-D7A1C36A62F3'}
+        self.log.info("info", context=ctxt, instance=fake_resource)
+        infoexpected = "[%s]: [instance: C9B7CCC6-8A12-4C53-A736-" \
+                       "D7A1C36A62F3] info\n" % ctxt.request_id
+        self.assertEqual(infoexpected, self.stream.getvalue())
+
+    def test_instance_dict_in_default_log_msg(self):
+        fake_resource = {'uuid': 'C9B7CCC6-8A12-4C53-A736-D7A1C36A62F3'}
+        self.log.info("info", instance=fake_resource)
+        infoexpected = "[instance: C9B7CCC6-8A12-4C53-A736-" \
+                       "D7A1C36A62F3] info\n"
         self.assertEqual(infoexpected, self.stream.getvalue())
 
 
