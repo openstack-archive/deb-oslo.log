@@ -17,6 +17,7 @@
 import logging
 import os
 import sys
+import syslog
 import tempfile
 
 import mock
@@ -208,6 +209,26 @@ class SysLogHandlersTestCase(BaseTestCase):
         expected = logrecord
         self.assertEqual(self.logger.format(logrecord),
                          expected.getMessage())
+
+
+class OSSysLogHandlerTestCase(BaseTestCase):
+    def tests_handler(self):
+        handler = handlers.OSSysLogHandler()
+        syslog.syslog = mock.Mock()
+        handler.emit(
+            logging.LogRecord("foo", logging.INFO,
+                              "path", 123, "hey!",
+                              None, None))
+        self.assertTrue(syslog.syslog.called)
+
+    def test_find_facility(self):
+        self.assertEqual(syslog.LOG_USER, log._find_facility("user"))
+        self.assertEqual(syslog.LOG_LPR, log._find_facility("LPR"))
+        self.assertEqual(syslog.LOG_LOCAL3, log._find_facility("log_local3"))
+        self.assertEqual(syslog.LOG_UUCP, log._find_facility("LOG_UUCP"))
+        self.assertRaises(TypeError,
+                          log._find_facility,
+                          "fougere")
 
 
 class LogLevelTestCase(BaseTestCase):
@@ -563,6 +584,7 @@ class SetDefaultsTestCase(BaseTestCase):
         super(SetDefaultsTestCase, self).setUp()
         self.conf = self.TestConfigOpts()
         self.conf.register_opts(_options.log_opts)
+        self.conf.register_cli_opts(_options.logging_cli_opts)
 
         self._orig_defaults = dict([(o.dest, o.default)
                                     for o in _options.log_opts])
@@ -592,6 +614,17 @@ class SetDefaultsTestCase(BaseTestCase):
         self.conf([])
         self.assertEqual(['foo=bar'], self.conf.default_log_levels)
         self.assertIsNotNone(self.conf.logging_context_format_string)
+
+    def test_tempest_set_log_file(self):
+        log.tempest_set_log_file('foo.log')
+        log.set_defaults()
+        self.conf([])
+        self.assertEqual('foo.log', self.conf.log_file)
+
+    def test_log_file_defaults_to_none(self):
+        log.set_defaults()
+        self.conf([])
+        self.assertEqual(None, self.conf.log_file)
 
 
 class LogConfigOptsTestCase(BaseTestCase):
@@ -626,7 +659,7 @@ class LogConfigOptsTestCase(BaseTestCase):
                          _options._DEFAULT_LOG_DATE_FORMAT)
 
         self.assertEqual(self.CONF.use_syslog, False)
-        self.assertEqual(self.CONF.use_syslog_rfc_format, False)
+        self.assertEqual(self.CONF.use_syslog_rfc_format, True)
 
     def test_log_file(self):
         log_file = '/some/path/foo-bar.log'
@@ -823,3 +856,26 @@ class KeywordArgumentAdapterTestCase(BaseTestCase):
                        'extra_keys': ['name']},
                 exc_info='exception',
             )
+
+
+class UnicodeConversionTestCase(BaseTestCase):
+
+    def test_ascii_to_unicode(self):
+        msg = u'Message with unicode char \ua000 in the middle'
+        enc_msg = msg.encode('utf-8')
+        result = log._ensure_unicode(enc_msg)
+        self.assertEqual(msg, result)
+        self.assertIsInstance(result, six.text_type)
+
+    def test_unicode_to_unicode(self):
+        msg = u'Message with unicode char \ua000 in the middle'
+        result = log._ensure_unicode(msg)
+        self.assertEqual(msg, result)
+        self.assertIsInstance(result, six.text_type)
+
+    def test_exception_to_unicode(self):
+        msg = u'Message with unicode char \ua000 in the middle'
+        exc = Exception(msg)
+        result = log._ensure_unicode(exc)
+        self.assertEqual(msg, result)
+        self.assertIsInstance(result, six.text_type)

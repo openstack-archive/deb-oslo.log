@@ -31,11 +31,12 @@ import logging
 import logging.config
 import logging.handlers
 import os
-import socket
 import sys
+import syslog
 import traceback
 
 from oslo_config import cfg
+from oslo_utils import encodeutils
 from oslo_utils import importutils
 import six
 from six import moves
@@ -83,6 +84,21 @@ class BaseLoggerAdapter(logging.LoggerAdapter):
             return super(BaseLoggerAdapter, self).isEnabledFor(level)
 
 
+def _ensure_unicode(msg):
+    """Do our best to turn the input argument into a unicode object.
+    """
+    if not isinstance(msg, six.text_type):
+        if isinstance(msg, six.binary_type):
+            msg = encodeutils.safe_decode(
+                msg,
+                incoming='utf-8',
+                errors='xmlcharrefreplace',
+            )
+        else:
+            msg = six.text_type(msg)
+    return msg
+
+
 class KeywordArgumentAdapter(BaseLoggerAdapter):
     """Logger adapter to add keyword arguments to log record's extra data
 
@@ -102,6 +118,7 @@ class KeywordArgumentAdapter(BaseLoggerAdapter):
     """
 
     def process(self, msg, kwargs):
+        msg = _ensure_unicode(msg)
         # Make a new extra dictionary combining the values we were
         # given when we were constructed and anything from kwargs.
         extra = {}
@@ -229,28 +246,44 @@ def set_defaults(logging_context_format_string=None,
             logging_context_format_string=logging_context_format_string)
 
 
-def _find_facility_from_conf(conf):
-    facility_names = logging.handlers.SysLogHandler.facility_names
-    facility = getattr(logging.handlers.SysLogHandler,
-                       conf.syslog_log_facility,
-                       None)
+def tempest_set_log_file(filename):
+    """Provide an API for tempest to set the logging filename.
 
-    if facility is None and conf.syslog_log_facility in facility_names:
-        facility = facility_names.get(conf.syslog_log_facility)
+    .. warning:: Only Tempest should use this function.
 
-    if facility is None:
-        valid_facilities = facility_names.keys()
-        consts = ['LOG_AUTH', 'LOG_AUTHPRIV', 'LOG_CRON', 'LOG_DAEMON',
-                  'LOG_FTP', 'LOG_KERN', 'LOG_LPR', 'LOG_MAIL', 'LOG_NEWS',
-                  'LOG_AUTH', 'LOG_SYSLOG', 'LOG_USER', 'LOG_UUCP',
-                  'LOG_LOCAL0', 'LOG_LOCAL1', 'LOG_LOCAL2', 'LOG_LOCAL3',
-                  'LOG_LOCAL4', 'LOG_LOCAL5', 'LOG_LOCAL6', 'LOG_LOCAL7']
-        valid_facilities.extend(consts)
+    We don't want applications to set a default log file, so we don't
+    want this in set_defaults(). Because tempest doesn't use a
+    configuration file we don't have another convenient way to safely
+    set the log file default.
+
+    """
+    cfg.set_defaults(_options.logging_cli_opts, log_file=filename)
+
+
+def _find_facility(facility):
+    # NOTE(jd): Check the validity of facilities at run time as they differ
+    # depending on the OS and Python version being used.
+    valid_facilities = [f for f in
+                        ["LOG_KERN", "LOG_USER", "LOG_MAIL",
+                         "LOG_DAEMON", "LOG_AUTH", "LOG_SYSLOG",
+                         "LOG_LPR", "LOG_NEWS", "LOG_UUCP",
+                         "LOG_CRON", "LOG_AUTHPRIV", "LOG_FTP",
+                         "LOG_LOCAL0", "LOG_LOCAL1", "LOG_LOCAL2",
+                         "LOG_LOCAL3", "LOG_LOCAL4", "LOG_LOCAL5",
+                         "LOG_LOCAL6", "LOG_LOCAL7"]
+                        if getattr(syslog, f, None)]
+
+    facility = facility.upper()
+
+    if not facility.startswith("LOG_"):
+        facility = "LOG_" + facility
+
+    if facility not in valid_facilities:
         raise TypeError(_('syslog facility must be one of: %s') %
                         ', '.join("'%s'" % fac
                                   for fac in valid_facilities))
 
-    return facility
+    return getattr(syslog, facility)
 
 
 def _setup_logging_from_conf(conf, project, version):
@@ -280,20 +313,13 @@ def _setup_logging_from_conf(conf, project, version):
         log_root.addHandler(handler)
 
     if conf.use_syslog:
-        try:
-            facility = _find_facility_from_conf(conf)
-            # TODO(bogdando) use the format provided by RFCSysLogHandler
-            #   after existing syslog format deprecation in J
-            if conf.use_syslog_rfc_format:
-                syslog = handlers.RFCSysLogHandler(address='/dev/log',
-                                                   facility=facility)
-            else:
-                syslog = logging.handlers.SysLogHandler(address='/dev/log',
-                                                        facility=facility)
-            log_root.addHandler(syslog)
-        except socket.error:
-            log_root.error('Unable to add syslog handler. Verify that syslog '
-                           'is running.')
+        facility = _find_facility(conf.syslog_log_facility)
+        # TODO(bogdando) use the format provided by RFCSysLogHandler after
+        # existing syslog format deprecation in J
+        syslog = handlers.OSSysLogHandler(
+            facility=facility,
+            use_syslog_rfc_format=conf.use_syslog_rfc_format)
+        log_root.addHandler(syslog)
 
     datefmt = conf.log_date_format
     for handler in log_root.handlers:

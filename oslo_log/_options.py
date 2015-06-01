@@ -14,6 +14,8 @@ import copy
 
 from oslo_config import cfg
 
+from oslo_log import versionutils
+
 _DEFAULT_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
@@ -64,16 +66,15 @@ logging_cli_opts = [
                 default=False,
                 help='Use syslog for logging. '
                      'Existing syslog format is DEPRECATED during I, '
-                     'and will change in J to honor RFC5424.'),
+                     'and changed in J to honor RFC5424.'),
     cfg.BoolOpt('use-syslog-rfc-format',
-                # TODO(bogdando) remove or use True after existing
-                #    syslog format deprecation in J
-                default=False,
+                default=True,
+                deprecated_for_removal=True,
                 help='(Optional) Enables or disables syslog rfc5424 format '
                      'for logging. If enabled, prefixes the MSG part of the '
                      'syslog message with APP-NAME (RFC5424). The '
-                     'format without the APP-NAME is deprecated in I, '
-                     'and will be removed in J.'),
+                     'format without the APP-NAME is deprecated in K, '
+                     'and will be removed in M, along with this option.'),
     cfg.StrOpt('syslog-log-facility',
                default='LOG_USER',
                help='Syslog facility to receive log lines.')
@@ -109,7 +110,7 @@ log_opts = [
                default='%(funcName)s %(pathname)s:%(lineno)d',
                help='Data to append to log format when level is DEBUG.'),
     cfg.StrOpt('logging_exception_prefix',
-               default='%(asctime)s.%(msecs)03d %(process)d TRACE %(name)s '
+               default='%(asctime)s.%(msecs)03d %(process)d ERROR %(name)s '
                '%(instance)s',
                help='Prefix each line of exception output with this format.'),
     cfg.ListOpt('default_log_levels',
@@ -153,4 +154,5 @@ def list_opts():
     :returns: a list of (group_name, opts) tuples
     """
     return [(None, copy.deepcopy(common_cli_opts + logging_cli_opts +
-                                 generic_log_opts + log_opts))]
+                                 generic_log_opts + log_opts +
+                                 versionutils.deprecated_opts))]
