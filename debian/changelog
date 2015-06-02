@@ -1,3 +1,9 @@
+python-oslo.log (1.2.0-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- James Page <james.page@ubuntu.com>  Tue, 02 Jun 2015 14:08:52 +0100
+
 python-oslo.log (1.0.0-1) unstable; urgency=medium
 
   * Initial release. (Closes: #776109)
