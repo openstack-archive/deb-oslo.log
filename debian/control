@@ -56,6 +56,8 @@ Package: python-oslo.log
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.6~),
 Provides: python-oslo-log,
+Breaks: python-oslo-log (<< 1.2.0-1~),
+Replaces: python-oslo-log (<< 1.2.0-1~),
 Depends: python-babel,
          python-debtcollector (>= 0.3.0),
          python-iso8601,
@@ -80,6 +82,8 @@ Package: python3-oslo.log
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.6~),
 Provides: python3-oslo-log,
+Breaks: python3-oslo-log (<< 1.2.0-1~),
+Replaces: python3-oslo-log (<< 1.2.0-1~),
 Depends: python3-babel,
          python3-debtcollector (>= 0.3.0),
          python3-iso8601,
@@ -112,3 +116,27 @@ Description: OpenStack logging configuration library - doc
  support for context specific logging (like resource id's etc).
  .
  This package contains the documentation.
+
+Package: python-oslo-log
+Section: oldlibs
+Architecture: all
+Depends: python-oslo.log,
+         ${misc:Depends},
+Description: transitional dummy package for python-oslo-log.
+ This transtional package is safe to remove.
+
+Package: python-oslo-log-doc
+Section: oldlibs
+Architecture: all
+Depends: python-oslo.log-doc,
+         ${misc:Depends},
+Description: transitional dummy package for python-oslo-log-doc.
+ This transtional package is safe to remove.
+
+Package: python3-oslo-log
+Section: oldlibs
+Architecture: all
+Depends: python3-oslo.log,
+         ${misc:Depends},
+Description: transitional dummy package for python3-oslo-log.
+ This transtional package is safe to remove.

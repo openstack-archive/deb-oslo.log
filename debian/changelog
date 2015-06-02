@@ -2,6 +2,10 @@ python-oslo.log (1.2.0-1) UNRELEASED; urgency=medium
 
   * New upstream release:
     - d/control: Align version requirements with upstream.
+  * Re-align with Ubuntu:
+    - d/control: Add transitional packages for *oslo-log.
+    - d/control: Add Breaks/Replaces to support migration to oslo.log
+      package names.
 
  -- James Page <james.page@ubuntu.com>  Tue, 02 Jun 2015 14:08:52 +0100
 
