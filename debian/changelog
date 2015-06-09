@@ -1,5 +1,6 @@
-python-oslo.log (1.2.0-1) UNRELEASED; urgency=medium
+python-oslo.log (1.2.0-1) experimental; urgency=medium
 
+  * Team upload.
   * New upstream release:
     - d/control: Align version requirements with upstream.
   * Re-align with Ubuntu:
@@ -7,7 +8,7 @@ python-oslo.log (1.2.0-1) UNRELEASED; urgency=medium
     - d/control: Add Breaks/Replaces to support migration to oslo.log
       package names.
 
- -- James Page <james.page@ubuntu.com>  Tue, 02 Jun 2015 14:08:52 +0100
+ -- James Page <james.page@ubuntu.com>  Tue, 09 Jun 2015 08:47:27 +0100
 
 python-oslo.log (1.0.0-1) unstable; urgency=medium
 
