@@ -2,6 +2,7 @@ python-oslo.log (1.4.0-1) UNRELEASED; urgency=medium
 
   * Team upload.
   * New upstream release. 
+  * Update watch file to use Debian pypi redirector.
 
  -- James Page <james.page@ubuntu.com>  Wed, 10 Jun 2015 17:27:08 +0100
 
