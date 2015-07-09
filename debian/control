@@ -123,7 +123,7 @@ Architecture: all
 Depends: python-oslo.log,
          ${misc:Depends},
 Description: transitional dummy package for python-oslo-log.
- This transtional package is safe to remove.
+ This transitional package is safe to remove.
 
 Package: python-oslo-log-doc
 Section: oldlibs
@@ -131,7 +131,7 @@ Architecture: all
 Depends: python-oslo.log-doc,
          ${misc:Depends},
 Description: transitional dummy package for python-oslo-log-doc.
- This transtional package is safe to remove.
+ This transitional package is safe to remove.
 
 Package: python3-oslo-log
 Section: oldlibs
@@ -139,4 +139,4 @@ Architecture: all
 Depends: python3-oslo.log,
          ${misc:Depends},
 Description: transitional dummy package for python3-oslo-log.
- This transtional package is safe to remove.
+ This transitional package is safe to remove.
