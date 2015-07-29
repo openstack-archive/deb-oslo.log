@@ -65,8 +65,8 @@ logging_cli_opts = [
     cfg.BoolOpt('use-syslog',
                 default=False,
                 help='Use syslog for logging. '
-                     'Existing syslog format is DEPRECATED during I, '
-                     'and changed in J to honor RFC5424.'),
+                     'Existing syslog format is DEPRECATED '
+                     'and will be changed later to honor RFC5424.'),
     cfg.BoolOpt('use-syslog-rfc-format',
                 default=True,
                 deprecated_for_removal=True,
@@ -94,7 +94,7 @@ DEFAULT_LOG_LEVELS = ['amqp=WARN', 'amqplib=WARN', 'boto=WARN',
                       'requests.packages.urllib3.util.retry=WARN',
                       'urllib3.util.retry=WARN',
                       "keystonemiddleware=WARN", "routes.middleware=WARN",
-                      "stevedore=WARN"]
+                      "stevedore=WARN", "taskflow=WARN"]
 
 log_opts = [
     cfg.StrOpt('logging_context_format_string',
@@ -119,9 +119,6 @@ log_opts = [
     cfg.BoolOpt('publish_errors',
                 default=False,
                 help='Enables or disables publication of error events.'),
-    cfg.BoolOpt('fatal_deprecations',
-                default=False,
-                help='Enables or disables fatal status of deprecations.'),
 
     # NOTE(mikal): there are two options here because sometimes we are handed
     # a full instance (and could include more information), and other times we
