@@ -1,8 +1,12 @@
-python-oslo.log (1.4.0-2) UNRELEASED; urgency=medium
+python-oslo.log (1.7.0-1) experimental; urgency=medium
 
+  [ James Page ]
   * Fixup typo in transitional package description (LP: #1471561).
 
- -- James Page <james.page@ubuntu.com>  Thu, 09 Jul 2015 10:42:34 +0100
+  [ Thomas Goirand ]
+  * New upstream release.
+
+ -- Thomas Goirand <zigo@debian.org>  Wed, 29 Jul 2015 23:29:35 +0000
 
 python-oslo.log (1.4.0-1) experimental; urgency=medium
 
