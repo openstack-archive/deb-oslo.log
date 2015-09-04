@@ -1,9 +1,9 @@
-python-oslo.log (1.8.0-1) UNRELEASED; urgency=medium
+python-oslo.log (1.10.0-1) experimental; urgency=medium
 
   * New upstream release.
   * Align (build)-depends with upstream.
 
- -- James Page <james.page@ubuntu.com>  Wed, 05 Aug 2015 14:42:38 +0200
+ -- Thomas Goirand <zigo@debian.org>  Fri, 04 Sep 2015 08:48:41 +0000
 
 python-oslo.log (1.7.0-1) experimental; urgency=medium
 
