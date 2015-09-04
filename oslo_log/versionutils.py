@@ -39,6 +39,16 @@ deprecated_opts = [
 ]
 
 
+def register_options():
+    """Register configuration options used by this library.
+
+    .. note: This is optional since the options are also registered
+        automatically when the functions in this module are used.
+
+    """
+    CONF.register_opts(deprecated_opts)
+
+
 class deprecated(object):
     """A decorator to mark callables as deprecated.
 
@@ -95,6 +105,7 @@ class deprecated(object):
     JUNO = 'J'
     KILO = 'K'
     LIBERTY = 'L'
+    MITAKA = 'M'
 
     _RELEASES = {
         # NOTE(morganfainberg): Bexar is used for unit test purposes, it is
@@ -107,6 +118,7 @@ class deprecated(object):
         'J': 'Juno',
         'K': 'Kilo',
         'L': 'Liberty',
+        'M': 'Mitaka',
     }
 
     _deprecated_msg_with_alternative = _(
@@ -246,7 +258,7 @@ def report_deprecated_feature(logger, msg, *args, **kwargs):
              fatal deprecations.
     """
     stdmsg = _("Deprecated: %s") % msg
-    CONF.register_opts(deprecated_opts)
+    register_options()
     if CONF.fatal_deprecations:
         logger.critical(stdmsg, *args, **kwargs)
         raise DeprecatedConfig(msg=stdmsg)
