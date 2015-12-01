@@ -1,6 +1,7 @@
 python-oslo.log (2.0.0-1) experimental; urgency=medium
 
   * New upstream release.
+  * Fixed (build-)depends for this release.
 
  -- Thomas Goirand <zigo@debian.org>  Tue, 01 Dec 2015 10:55:20 +0100
 
