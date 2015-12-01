@@ -31,6 +31,7 @@ import logging
 import logging.config
 import logging.handlers
 import os
+import platform
 import sys
 try:
     import syslog
@@ -231,6 +232,13 @@ def _load_log_config(log_config_append):
 
 def register_options(conf):
     """Register the command line and configuration options used by oslo.log."""
+
+    # Sometimes logging occurs before logging is ready (e.g., oslo_config).
+    # To avoid "No handlers could be found," temporarily log to sys.stderr.
+    root_logger = logging.getLogger(None)
+    if not root_logger.handlers:
+        root_logger.addHandler(logging.StreamHandler())
+
     conf.register_cli_opts(_options.common_cli_opts)
     conf.register_cli_opts(_options.logging_cli_opts)
     conf.register_opts(_options.generic_log_opts)
@@ -311,7 +319,13 @@ def _setup_logging_from_conf(conf, project, version):
 
     logpath = _get_log_file_path(conf)
     if logpath:
-        filelog = logging.handlers.WatchedFileHandler(logpath)
+        if conf.watch_log_file and platform.system() == 'Linux':
+            from oslo_log import watchers
+            file_handler = watchers.FastWatchedFileHandler
+        else:
+            file_handler = logging.handlers.WatchedFileHandler
+
+        filelog = file_handler(logpath)
         log_root.addHandler(filelog)
 
     if conf.use_stderr:
@@ -337,10 +351,10 @@ def _setup_logging_from_conf(conf, project, version):
         facility = _find_facility(conf.syslog_log_facility)
         # TODO(bogdando) use the format provided by RFCSysLogHandler after
         # existing syslog format deprecation in J
-        syslog = handlers.OSSysLogHandler(
+        syslog_handler = handlers.OSSysLogHandler(
             facility=facility,
             use_syslog_rfc_format=conf.use_syslog_rfc_format)
-        log_root.addHandler(syslog)
+        log_root.addHandler(syslog_handler)
 
     datefmt = conf.log_date_format
     for handler in log_root.handlers:
@@ -378,7 +392,7 @@ def _setup_logging_from_conf(conf, project, version):
             pass
         # NOTE(AAzza) in python2.6 Logger.setLevel doesn't convert string name
         # to integer code.
-        if sys.version_info < (2, 7):
+        if _PY26:
             if numeric_level is None:
                 numeric_level = logging.getLevelName(level_name)
             logger.setLevel(numeric_level)

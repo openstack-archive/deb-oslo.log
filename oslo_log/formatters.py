@@ -14,6 +14,7 @@ import itertools
 import logging
 import logging.config
 import logging.handlers
+import socket
 import sys
 import traceback
 
@@ -61,11 +62,20 @@ def _update_record_with_context(record):
     return context
 
 
+class _ReplaceFalseValue(dict):
+    def __getitem__(self, key):
+        return dict.get(self, key, None) or '-'
+
+
 class JSONFormatter(logging.Formatter):
     def __init__(self, fmt=None, datefmt=None):
         # NOTE(jkoelker) we ignore the fmt argument, but its still there
         #                since logging.config.fileConfig passes it.
         self.datefmt = datefmt
+        try:
+            self.hostname = socket.gethostname()
+        except socket.error:
+            self.hostname = None
 
     def formatException(self, ei, strip_newlines=True):
         lines = traceback.format_exception(*ei)
@@ -96,7 +106,8 @@ class JSONFormatter(logging.Formatter):
                    'thread_name': record.threadName,
                    'process_name': record.processName,
                    'process': record.process,
-                   'traceback': None}
+                   'traceback': None,
+                   'hostname': self.hostname}
 
         # Build the extra values that were given to us, including
         # the context.
@@ -215,6 +226,15 @@ class ContextFormatter(logging.Formatter):
                     'user_name', 'project_name'):
             if key not in record.__dict__:
                 record.__dict__[key] = ''
+
+        # Set the "user_identity" value of "logging_context_format_string"
+        # by using "logging_user_identity_format" and
+        # "to_dict()" of oslo.context.
+        if context:
+            record.user_identity = (
+                self.conf.logging_user_identity_format %
+                _ReplaceFalseValue(context.__dict__)
+            )
 
         if record.__dict__.get('request_id'):
             fmt = self.conf.logging_context_format_string
