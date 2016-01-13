@@ -45,8 +45,6 @@ from oslo_utils import importutils
 import six
 from six import moves
 
-_PY26 = sys.version_info[0:2] == (2, 6)
-
 from oslo_log._i18n import _
 from oslo_log import _options
 from oslo_log import formatters
@@ -92,15 +90,6 @@ class BaseLoggerAdapter(logging.LoggerAdapter):
 
     def trace(self, msg, *args, **kwargs):
         self.log(TRACE, msg, *args, **kwargs)
-
-    def isEnabledFor(self, level):
-        if _PY26:
-            # This method was added in python 2.7 (and it does the exact
-            # same logic, so we need to do the exact same logic so that
-            # python 2.6 has this capability as well).
-            return self.logger.isEnabledFor(level)
-        else:
-            return super(BaseLoggerAdapter, self).isEnabledFor(level)
 
 
 def _ensure_unicode(msg):
@@ -314,7 +303,9 @@ def _find_facility(facility):
 
 def _setup_logging_from_conf(conf, project, version):
     log_root = getLogger(None).logger
-    for handler in log_root.handlers:
+
+    # Remove all handlers
+    for handler in list(log_root.handlers):
         log_root.removeHandler(handler)
 
     logpath = _get_log_file_path(conf)
@@ -388,19 +379,12 @@ def _setup_logging_from_conf(conf, project, version):
             # defined at level 5, so to make that accessible, try to convert
             # this to a integer, and if not keep the original...
             numeric_level = int(level_name)
-        except ValueError:
+        except ValueError:  # nosec
             pass
-        # NOTE(AAzza) in python2.6 Logger.setLevel doesn't convert string name
-        # to integer code.
-        if _PY26:
-            if numeric_level is None:
-                numeric_level = logging.getLevelName(level_name)
+        if numeric_level is not None:
             logger.setLevel(numeric_level)
         else:
-            if numeric_level is not None:
-                logger.setLevel(numeric_level)
-            else:
-                logger.setLevel(level_name)
+            logger.setLevel(level_name)
 
 _loggers = {}
 
