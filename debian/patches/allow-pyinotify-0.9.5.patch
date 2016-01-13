@@ -1,0 +1,15 @@
+Description: Allow pyinotify 0.9.5
+ Debian still has 0.9.5, and the latest upstream release doesn't contain
+ so critical fixes, so we allow a lower version.
+Author: Thomas Goirand <zigo@debian.org>
+Forwarded: no
+Last-Update: 2016-01-13
+
+--- python-oslo.log-2.2.0.orig/requirements.txt
++++ python-oslo.log-2.2.0/requirements.txt
+@@ -11,4 +11,4 @@ oslo.i18n>=1.5.0 # Apache-2.0
+ oslo.utils>=3.2.0 # Apache-2.0
+ oslo.serialization>=1.10.0 # Apache-2.0
+ debtcollector>=0.3.0 # Apache-2.0
+-pyinotify>=0.9.6;sys_platform!='win32' and sys_platform!='darwin' and sys_platform!='sunos5' # MIT
++pyinotify>=0.9.5;sys_platform!='win32' and sys_platform!='darwin' and sys_platform!='sunos5' # MIT

@@ -2,6 +2,7 @@ python-oslo.log (2.2.0-1) experimental; urgency=medium
 
   * New upstream release.
   * Fixed (build-)depends for this release.
+  * Add patch to allow pyinotify 0.9.5.
 
  -- Thomas Goirand <zigo@debian.org>  Wed, 13 Jan 2016 02:34:22 +0000
 
