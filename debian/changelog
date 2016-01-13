@@ -1,9 +1,3 @@
-python-oslo.log (2.0.0-2) UNRELEASED; urgency=medium
-
-  * d/control: Bump minimum python-pyinotify to 0.9.6.
-
- -- Corey Bryant <corey.bryant@canonical.com>  Thu, 17 Dec 2015 08:50:58 -0500
-
 python-oslo.log (2.0.0-1) experimental; urgency=medium
 
   * New upstream release.
