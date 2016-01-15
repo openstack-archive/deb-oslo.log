@@ -4,6 +4,7 @@ python-oslo.log (2.3.0-1) experimental; urgency=medium
   * Fixed (build-)depends for this release.
   * Fixed debian/copyright.
   * Removed install-missing-files.patch.
+  * Rebased allow-pyinotify-0.9.5.patch.
 
  -- Thomas Goirand <zigo@debian.org>  Fri, 15 Jan 2016 05:58:54 +0000
 
