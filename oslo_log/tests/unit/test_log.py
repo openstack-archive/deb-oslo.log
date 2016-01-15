@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 import logging
 import os
 import platform
@@ -25,6 +26,7 @@ except ImportError:
 import tempfile
 import time
 
+from dateutil import tz
 import mock
 from oslo_config import cfg
 from oslo_config import fixture as fixture_config  # noqa
@@ -340,6 +342,15 @@ class JSONFormatterTestCase(LogTestBase):
         self.assertTrue(data['traceback'])
 
 
+def get_fake_datetime(retval):
+    class FakeDateTime(datetime.datetime):
+        @classmethod
+        def fromtimestamp(cls, timestamp):
+            return retval
+
+    return FakeDateTime
+
+
 class ContextFormatterTestCase(LogTestBase):
     def setUp(self):
         super(ContextFormatterTestCase, self).setUp()
@@ -463,6 +474,35 @@ class ContextFormatterTestCase(LogTestBase):
                      six.text_type(message)))
         self.assertEqual(expected, self.stream.getvalue())
 
+    @mock.patch("datetime.datetime",
+                get_fake_datetime(
+                    datetime.datetime(2015, 12, 16, 13, 54, 26, 517893)))
+    @mock.patch("dateutil.tz.tzlocal", new=mock.Mock(return_value=tz.tzutc()))
+    def test_rfc5424_isotime_format(self):
+        self.config(logging_default_format_string="%(isotime)s %(message)s")
+
+        message = "test"
+        expected = "2015-12-16T13:54:26.517893+00:00 %s\n" % message
+
+        self.log.info(message)
+
+        self.assertEqual(expected, self.stream.getvalue())
+
+    @mock.patch("datetime.datetime",
+                get_fake_datetime(
+                    datetime.datetime(2015, 12, 16, 13, 54, 26)))
+    @mock.patch("time.time", new=mock.Mock(return_value=1450274066.000000))
+    @mock.patch("dateutil.tz.tzlocal", new=mock.Mock(return_value=tz.tzutc()))
+    def test_rfc5424_isotime_format_no_microseconds(self):
+        self.config(logging_default_format_string="%(isotime)s %(message)s")
+
+        message = "test"
+        expected = "2015-12-16T13:54:26.000000+00:00 %s\n" % message
+
+        self.log.info(message)
+
+        self.assertEqual(expected, self.stream.getvalue())
+
 
 class ExceptionLoggingTestCase(LogTestBase):
     """Test that Exceptions are logged."""
@@ -487,6 +527,32 @@ class ExceptionLoggingTestCase(LogTestBase):
     def test_excepthook_installed(self):
         log.setup(self.CONF, "test_excepthook_installed")
         self.assertTrue(sys.excepthook != sys.__excepthook__)
+
+    @mock.patch("datetime.datetime",
+                get_fake_datetime(
+                    datetime.datetime(2015, 12, 16, 13, 54, 26, 517893)))
+    @mock.patch("dateutil.tz.tzlocal", new=mock.Mock(return_value=tz.tzutc()))
+    def test_rfc5424_isotime_format(self):
+        self.config(
+            logging_default_format_string="%(isotime)s %(message)s",
+            logging_exception_prefix="%(isotime)s ",
+        )
+
+        product_name = 'somename'
+        exc_log = log.getLogger(product_name)
+
+        self._add_handler_with_cleanup(exc_log)
+        excepthook = log._create_logging_excepthook(product_name)
+
+        try:
+            raise Exception('Some error happened')
+        except Exception:
+            excepthook(*sys.exc_info())
+
+        expected_string = ("2015-12-16T13:54:26.517893+00:00 "
+                           "Exception: Some error happened")
+        self.assertIn(expected_string,
+                      self.stream.getvalue())
 
 
 class FancyRecordTestCase(LogTestBase):
@@ -672,6 +738,10 @@ class SetDefaultsTestCase(BaseTestCase):
         self.assertEqual(_options.DEFAULT_LOG_LEVELS,
                          self.conf.default_log_levels)
 
+    def test_default_log_level_method(self):
+        self.assertEqual(_options.DEFAULT_LOG_LEVELS,
+                         log.get_default_log_levels())
+
     def test_change_default(self):
         my_default = '%(asctime)s %(levelname)s %(name)s [%(request_id)s '\
                      '%(user_id)s %(project)s] %(instance)s'\
@@ -695,7 +765,7 @@ class SetDefaultsTestCase(BaseTestCase):
     def test_log_file_defaults_to_none(self):
         log.set_defaults()
         self.conf([])
-        self.assertEqual(None, self.conf.log_file)
+        self.assertIsNone(self.conf.log_file)
 
 
 @testtools.skipIf(platform.system() != 'Linux',
