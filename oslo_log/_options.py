@@ -10,8 +10,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import copy
-
 from oslo_config import cfg
 
 from oslo_log import versionutils
@@ -27,7 +25,8 @@ DEFAULT_LOG_LEVELS = ['amqp=WARN', 'amqplib=WARN', 'boto=WARN',
                       'urllib3.util.retry=WARN',
                       'keystonemiddleware=WARN', 'routes.middleware=WARN',
                       'stevedore=WARN', 'taskflow=WARN',
-                      'keystoneauth=WARN']
+                      'keystoneauth=WARN', 'oslo.cache=INFO',
+                      'dogpile.core.dogpile=INFO']
 
 _IGNORE_MESSAGE = "This option is ignored if log_config_append is set."
 
@@ -53,19 +52,10 @@ logging_cli_opts = [
                     'is appended to any existing logging configuration '
                     'files. For details about logging configuration files, '
                     'see the Python logging module documentation. Note that '
-                    'when logging configuration files are used all '
-                    'logging configuration is defined in the configuration '
-                    'file and other logging configuration options are ignored '
-                    '(for example, log_format).'),
-    cfg.StrOpt('log-format',
-               metavar='FORMAT',
-               help='DEPRECATED. '
-                    'A logging.Formatter log message format string which may '
-                    'use any of the available logging.LogRecord attributes. '
-                    'This option is deprecated.  Please use '
-                    'logging_context_format_string and '
-                    'logging_default_format_string instead. This option is '
-                    'ignored if log_config_append is set.'),
+                    'when logging configuration files are used then all '
+                    'logging configuration is set in the configuration file '
+                    'and other logging configuration options are ignored '
+                    '(for example, logging_context_format_string).'),
     cfg.StrOpt('log-date-format',
                default=_DEFAULT_LOG_DATE_FORMAT,
                metavar='DATE_FORMAT',
@@ -103,10 +93,11 @@ logging_cli_opts = [
                 deprecated_for_removal=True,
                 help='Enables or disables syslog rfc5424 format '
                      'for logging. If enabled, prefixes the MSG part of the '
-                     'syslog message with APP-NAME (RFC5424). The '
-                     'format without the APP-NAME is deprecated in Kilo, '
-                     'and will be removed in Mitaka, along with this option. '
-                     + _IGNORE_MESSAGE),
+                     'syslog message with APP-NAME (RFC5424). '
+                     + _IGNORE_MESSAGE,
+                deprecated_reason='The format without the APP-NAME is '
+                                  'deprecated in Kilo, and will be removed in '
+                                  'Mitaka, along with this option. '),
     cfg.StrOpt('syslog-log-facility',
                default='LOG_USER',
                help='Syslog facility to receive log lines. '
@@ -183,6 +174,6 @@ def list_opts():
 
     :returns: a list of (group_name, opts) tuples
     """
-    return [(None, copy.deepcopy(common_cli_opts + logging_cli_opts +
-                                 generic_log_opts + log_opts +
-                                 versionutils.deprecated_opts))]
+    return [(None, (common_cli_opts + logging_cli_opts +
+                    generic_log_opts + log_opts +
+                    versionutils.deprecated_opts))]
