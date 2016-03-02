@@ -1,7 +1,6 @@
 python-oslo.log (3.2.0-1) experimental; urgency=medium
 
   [ David Della Vecchia ]
-  * d/control: Align depends with upstream.
   * d/p/allow-pyinotify-0.9.5.patch: Rebasing.
 
   [ Ondřej Nový ]
@@ -9,6 +8,7 @@ python-oslo.log (3.2.0-1) experimental; urgency=medium
 
   [ Thomas Goirand ]
   * New upstream release.
+  * d/control: Align depends with upstream.
 
  -- Thomas Goirand <zigo@debian.org>  Wed, 02 Mar 2016 12:37:10 +0000
 
