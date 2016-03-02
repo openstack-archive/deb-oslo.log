@@ -1,14 +1,16 @@
-python-oslo.log (3.1.0-1) UNRELEASED; urgency=medium
+python-oslo.log (3.2.0-1) experimental; urgency=medium
 
   [ David Della Vecchia ]
-  * New upstream release.
   * d/control: Align depends with upstream.
   * d/p/allow-pyinotify-0.9.5.patch: Rebasing.
 
   [ Ondřej Nový ]
   * Fixed VCS URLs (https).
 
- -- David Della Vecchia <ddv@canonical.com>  Wed, 24 Feb 2016 11:30:28 -0500
+  [ Thomas Goirand ]
+  * New upstream release.
+
+ -- Thomas Goirand <zigo@debian.org>  Wed, 02 Mar 2016 12:37:10 +0000
 
 python-oslo.log (2.3.0-1) experimental; urgency=medium
 
