@@ -7,6 +7,7 @@ python-oslo.log (3.7.0-1) UNRELEASED; urgency=medium
   * New upstream release.
   * d/gbp.conf: Update gbp branch config for Newton.
   * d/control: Align depends with upstream.
+  * d/rules: Set PYTHONPATH to current dir for sphinx-build.
 
  -- Corey Bryant <corey.bryant@canonical.com>  Thu, 12 May 2016 13:23:07 -0400
 
