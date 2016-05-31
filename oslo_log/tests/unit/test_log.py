@@ -109,7 +109,7 @@ class CommonLoggerTestsMixIn(object):
         logger_name = 'test_is_not_verbose'
         log.setup(self.CONF, logger_name)
         logger = logging.getLogger(logger_name)
-        self.assertEqual(logging.WARNING, logger.getEffectiveLevel())
+        self.assertEqual(logging.WARN, logger.getEffectiveLevel())
 
     def test_no_logging_via_module(self):
         for func in ('critical', 'error', 'exception', 'warning', 'warn',
@@ -873,6 +873,7 @@ class ConfigTestCase(test_base.BaseTestCase):
 
         log._setup_logging_from_conf(conf, 'test', 'test')
         self.assertEqual(conf.debug, False)
+
         self.assertEqual(conf.verbose, True)
         self.assertEqual(log.INFO, log_root.getEffectiveLevel())
 
