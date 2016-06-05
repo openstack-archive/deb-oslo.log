@@ -1,4 +1,4 @@
-python-oslo.log (3.8.0-1) UNRELEASED; urgency=medium
+python-oslo.log (3.8.0-1) experimental; urgency=medium
 
   [ Ondřej Nový ]
   * Standards-Version is 3.9.8 now (no change)
@@ -9,7 +9,10 @@ python-oslo.log (3.8.0-1) UNRELEASED; urgency=medium
   * d/control: Align depends with upstream.
   * d/rules: Set PYTHONPATH to current dir for sphinx-build.
 
- -- Corey Bryant <corey.bryant@canonical.com>  Tue, 31 May 2016 16:47:18 -0400
+  [ Thomas Goirand ]
+  * Added Corey Bryant <corey.bryant@canonical.com> to Uploaders.
+
+ -- Thomas Goirand <zigo@debian.org>  Sun, 05 Jun 2016 14:51:54 +0000
 
 python-oslo.log (3.2.0-1) experimental; urgency=medium
 
