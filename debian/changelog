@@ -1,10 +1,15 @@
-python-oslo.log (3.2.0-3) UNRELEASED; urgency=medium
+python-oslo.log (3.3.0-0) unstable; urgency=medium
 
+  [ Ondřej Nový ]
   * Standards-Version is 3.9.8 now (no change)
   * d/rules: Changed UPSTREAM_GIT protocol to https
   * d/copyright: Changed source URL to https protocol
 
- -- Ondřej Nový <novy@ondrej.org>  Sat, 09 Apr 2016 19:29:19 +0200
+  [ Thomas Goirand ]
+  * New upstream release.
+  * Fixed python{3,}-oslo.config (build-)depends version.
+
+ -- Thomas Goirand <zigo@debian.org>  Tue, 21 Jun 2016 11:27:26 +0200
 
 python-oslo.log (3.2.0-2) unstable; urgency=medium
 
