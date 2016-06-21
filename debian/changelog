@@ -1,4 +1,4 @@
-python-oslo.log (3.3.0-0) unstable; urgency=medium
+python-oslo.log (3.3.0-1) unstable; urgency=medium
 
   [ Ondřej Nový ]
   * Standards-Version is 3.9.8 now (no change)
