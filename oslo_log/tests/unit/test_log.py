@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Copyright (c) 2011 United States Government as represented by the
 # Administrator of the National Aeronautics and Space Administration.
 # All Rights Reserved.
@@ -259,6 +261,17 @@ class OSSysLogHandlerTestCase(BaseTestCase):
                           log._find_facility,
                           "fougere")
 
+    def test_syslog(self):
+        msg_unicode = u"Benoît Knecht & François Deppierraz login failure"
+        msg_utf8 = msg_unicode.encode('utf-8')
+
+        handler = handlers.OSSysLogHandler()
+        syslog.syslog = mock.Mock()
+        handler.emit(
+            logging.LogRecord("name", logging.INFO, "path", 123,
+                              msg_unicode, None, None))
+        syslog.syslog.assert_called_once_with(syslog.LOG_INFO, msg_utf8)
+
 
 class LogLevelTestCase(BaseTestCase):
     def setUp(self):
@@ -356,6 +369,46 @@ class JSONFormatterTestCase(LogTestBase):
         self.assertEqual('ERROR', data['levelname'])
         self.assertEqual(logging.ERROR, data['levelno'])
         self.assertTrue(data['traceback'])
+
+    def test_json_with_extra(self):
+        test_msg = 'This is a %(test)s line'
+        test_data = {'test': 'log'}
+        extra_data = {'special_user': 'user1',
+                      'special_tenant': 'unicorns'}
+        self.log.debug(test_msg, test_data, key='value', extra=extra_data)
+
+        data = jsonutils.loads(self.stream.getvalue())
+        self.assertTrue(data)
+        self.assertTrue('extra' in data)
+        for k, v in extra_data.items():
+            self.assertIn(k, data['extra'])
+            self.assertEqual(v, data['extra'][k])
+
+    def test_json_with_extra_keys(self):
+        test_msg = 'This is a %(test)s line'
+        test_data = {'test': 'log'}
+        extra_keys = ['special_tenant', 'special_user']
+        special_tenant = 'unicorns'
+        special_user = 'user2'
+        self.log.debug(test_msg, test_data, key='value',
+                       extra_keys=extra_keys, special_tenant=special_tenant,
+                       special_user=special_user)
+
+        data = jsonutils.loads(self.stream.getvalue())
+        self.assertTrue(data)
+        self.assertTrue('extra' in data)
+        self.assertTrue(extra_keys[0] in data['extra'])
+        self.assertEqual(special_tenant, data['extra'][extra_keys[0]])
+        self.assertTrue(extra_keys[1] in data['extra'])
+        self.assertEqual(special_user, data['extra'][extra_keys[1]])
+
+    def test_can_process_strings(self):
+        expected = b'\\u2622'
+        if six.PY3:
+            # see ContextFormatterTestCase.test_can_process_strings
+            expected = '\\\\xe2\\\\x98\\\\xa2'
+        self.log.info(b'%s', u'\u2622'.encode('utf8'))
+        self.assertIn(expected, self.stream.getvalue())
 
 
 def get_fake_datetime(retval):
@@ -524,6 +577,16 @@ class ContextFormatterTestCase(LogTestBase):
 
         self.assertEqual(expected, self.stream.getvalue())
 
+    def test_can_process_strings(self):
+        expected = b'\xe2\x98\xa2'
+        if six.PY3:
+            # in PY3 logging format string should be unicode string
+            # or it will fail and inserting byte string in unicode string
+            # causes such formatting
+            expected = '\\xe2\\x98\\xa2'
+        self.log.info(b'%s', u'\u2622'.encode('utf8'))
+        self.assertIn(expected, self.stream.getvalue())
+
 
 class ExceptionLoggingTestCase(LogTestBase):
     """Test that Exceptions are logged."""
@@ -637,33 +700,28 @@ class FancyRecordTestCase(LogTestBase):
                                    (ctxt.request_id, ctxt.resource_uuid)))
 
     def test_resource_key_in_log_msg(self):
-        infocolor = handlers.ColorHandler.LEVEL_COLORS[logging.INFO]
+        color = handlers.ColorHandler.LEVEL_COLORS[logging.INFO]
         ctxt = _fake_context()
         resource = 'resource-202260f9-1224-490d-afaf-6a744c13141f'
         fake_resource = {'name': resource}
         message = 'info'
         self.colorlog.info(message, context=ctxt, resource=fake_resource)
-        infoexpected = '%s [%s]: [%s] %s\n' % (infocolor,
-                                               ctxt.request_id,
-                                               resource,
-                                               message)
-        self.assertEqual(infoexpected, self.stream.getvalue())
+        expected = ('%s [%s]: [%s] %s\n' %
+                    (color, ctxt.request_id, resource, message))
+        self.assertEqual(expected, self.stream.getvalue())
 
     def test_resource_key_dict_in_log_msg(self):
-        infocolor = handlers.ColorHandler.LEVEL_COLORS[logging.INFO]
+        color = handlers.ColorHandler.LEVEL_COLORS[logging.INFO]
         ctxt = _fake_context()
-        resource_type = 'fake_resource'
+        type = 'fake_resource'
         resource_id = '202260f9-1224-490d-afaf-6a744c13141f'
-        fake_resource = {'type': 'fake_resource',
+        fake_resource = {'type': type,
                          'id': resource_id}
         message = 'info'
         self.colorlog.info(message, context=ctxt, resource=fake_resource)
-        infoexpected = '%s [%s]: [%s-%s] %s\n' % (infocolor,
-                                                  ctxt.request_id,
-                                                  resource_type,
-                                                  resource_id,
-                                                  message)
-        self.assertEqual(infoexpected, self.stream.getvalue())
+        expected = ('%s [%s]: [%s-%s] %s\n' %
+                    (color, ctxt.request_id, type, resource_id, message))
+        self.assertEqual(expected, self.stream.getvalue())
 
 
 class InstanceRecordTestCase(LogTestBase):
@@ -686,18 +744,62 @@ class InstanceRecordTestCase(LogTestBase):
         fake_resource = {'uuid': uuid}
         message = 'info'
         self.log.info(message, context=ctxt, instance=fake_resource)
-        infoexpected = '[%s]: [instance: %s] %s\n' % (ctxt.request_id,
-                                                      uuid,
-                                                      message)
-        self.assertEqual(infoexpected, self.stream.getvalue())
+        expected = ('[%s]: [instance: %s] %s\n' %
+                    (ctxt.request_id, uuid, message))
+        self.assertEqual(expected, self.stream.getvalue())
 
     def test_instance_dict_in_default_log_msg(self):
         uuid = 'C9B7CCC6-8A12-4C53-A736-D7A1C36A62F3'
         fake_resource = {'uuid': uuid}
         message = 'info'
         self.log.info(message, instance=fake_resource)
-        infoexpected = '[instance: %s] %s\n' % (uuid, message)
-        self.assertEqual(infoexpected, self.stream.getvalue())
+        expected = '[instance: %s] %s\n' % (uuid, message)
+        self.assertEqual(expected, self.stream.getvalue())
+
+    def test_instance_uuid_as_arg_in_context_log_msg(self):
+        ctxt = _fake_context()
+        uuid = 'C9B7CCC6-8A12-4C53-A736-D7A1C36A62F3'
+        message = 'info'
+        self.log.info(message, context=ctxt, instance_uuid=uuid)
+        expected = ('[%s]: [instance: %s] %s\n' %
+                    (ctxt.request_id, uuid, message))
+        self.assertEqual(expected, self.stream.getvalue())
+
+    def test_instance_uuid_as_arg_in_default_log_msg(self):
+        uuid = 'C9B7CCC6-8A12-4C53-A736-D7A1C36A62F3'
+        message = 'info'
+        self.log.info(message, instance_uuid=uuid)
+        expected = '[instance: %s] %s\n' % (uuid, message)
+        self.assertEqual(expected, self.stream.getvalue())
+
+    def test_instance_uuid_from_context_in_context_log_msg(self):
+        ctxt = _fake_context()
+        ctxt.instance_uuid = 'CCCCCCCC-8A12-4C53-A736-D7A1C36A62F3'
+        message = 'info'
+        self.log.info(message, context=ctxt)
+        expected = ('[%s]: [instance: %s] %s\n' %
+                    (ctxt.request_id, ctxt.instance_uuid, message))
+        self.assertEqual(expected, self.stream.getvalue())
+
+    def test_resource_uuid_from_context_in_context_log_msg(self):
+        ctxt = _fake_context()
+        ctxt.resource_uuid = 'RRRRRRRR-8A12-4C53-A736-D7A1C36A62F3'
+        message = 'info'
+        self.log.info(message, context=ctxt)
+        expected = ('[%s]: [instance: %s] %s\n' %
+                    (ctxt.request_id, ctxt.resource_uuid, message))
+        self.assertEqual(expected, self.stream.getvalue())
+
+    def test_instance_from_context_in_context_log_msg(self):
+        # NOTE: instance when passed in a context object is just a uuid.
+        # When passed to the log record, it is a dict.
+        ctxt = _fake_context()
+        ctxt.instance = 'IIIIIIII-8A12-4C53-A736-D7A1C36A62F3'
+        message = 'info'
+        self.log.info(message, context=ctxt)
+        values = (ctxt.request_id, ctxt.instance, message)
+        expected = '[%s]: [instance: %s] %s\n' % values
+        self.assertEqual(expected, self.stream.getvalue())
 
 
 class TraceLevelTestCase(LogTestBase):
@@ -739,7 +841,7 @@ class DomainTestCase(LogTestBase):
 
     def test_domain_in_log_msg(self):
         ctxt = _fake_context()
-        user_identity = ctxt.to_dict()['user_identity']
+        user_identity = ctxt.get_logging_values()['user_identity']
         self.assertTrue(ctxt.domain in user_identity)
         self.assertTrue(ctxt.project_domain in user_identity)
         self.assertTrue(ctxt.user_domain in user_identity)
@@ -800,6 +902,7 @@ class SetDefaultsTestCase(BaseTestCase):
     def test_tempest_set_log_file(self):
         log_file = 'foo.log'
         log.tempest_set_log_file(log_file)
+        self.addCleanup(log.tempest_set_log_file, None)
         log.set_defaults()
         self.conf([])
         self.assertEqual(log_file, self.conf.log_file)
@@ -848,13 +951,13 @@ class FastWatchedFileHandlerTestCase(BaseTestCase):
         log_path = self._config()
         os_level_dst, log_path_dst = tempfile.mkstemp()
         os.rename(log_path, log_path_dst)
-        time.sleep(2)
+        time.sleep(6)
         self.assertTrue(os.path.exists(log_path))
 
     def test_remove(self):
         log_path = self._config()
         os.remove(log_path)
-        time.sleep(2)
+        time.sleep(6)
         self.assertTrue(os.path.exists(log_path))
 
 
@@ -1154,20 +1257,20 @@ class UnicodeConversionTestCase(BaseTestCase):
     def test_ascii_to_unicode(self):
         msg = self._MSG
         enc_msg = msg.encode('utf-8')
-        result = log._ensure_unicode(enc_msg)
+        result = formatters._ensure_unicode(enc_msg)
         self.assertEqual(msg, result)
         self.assertIsInstance(result, six.text_type)
 
     def test_unicode_to_unicode(self):
         msg = self._MSG
-        result = log._ensure_unicode(msg)
+        result = formatters._ensure_unicode(msg)
         self.assertEqual(msg, result)
         self.assertIsInstance(result, six.text_type)
 
     def test_exception_to_unicode(self):
         msg = self._MSG
         exc = Exception(msg)
-        result = log._ensure_unicode(exc)
+        result = formatters._ensure_unicode(exc)
         self.assertEqual(msg, result)
         self.assertIsInstance(result, six.text_type)
 

@@ -11,6 +11,7 @@
 #    under the License.
 
 import datetime
+import debtcollector
 import itertools
 import logging
 import logging.config
@@ -25,14 +26,25 @@ from six import moves
 
 from oslo_context import context as context_utils
 from oslo_serialization import jsonutils
+from oslo_utils import encodeutils
 
 
 def _dictify_context(context):
-    if context is None:
-        return {}
-    if not isinstance(context, dict) and getattr(context, 'to_dict', None):
-        context = context.to_dict()
-    return context
+    if getattr(context, 'get_logging_values', None):
+        return context.get_logging_values()
+    elif getattr(context, 'to_dict', None):
+        debtcollector.deprecate(
+            'The RequestContext.get_logging_values() '
+            'method should be defined for logging context specific '
+            'information.  The to_dict() method is deprecated '
+            'for oslo.log use.', version='3.8.0', removal_version='5.0.0')
+        return context.to_dict()
+    # This dict only style logging format will become deprecated
+    # when projects using a dictionary object for context are updated
+    elif isinstance(context, dict):
+        return context
+
+    return {}
 
 
 # A configuration object is given to us when the application registers
@@ -48,20 +60,34 @@ def _store_global_conf(conf):
 def _update_record_with_context(record):
     """Given a log record, update it with context information.
 
-    The request context, if there is one, will either be in the
-    extra values for the incoming record or in the global
-    thread-local store.
+    The request context, if there is one, will either be passed with the
+    incoming record or in the global thread-local store.
     """
     context = record.__dict__.get(
         'context',
         context_utils.get_current()
     )
-    d = _dictify_context(context)
-    # Copy the context values directly onto the record so they can be
-    # used by the formatting strings.
-    for k, v in d.items():
-        setattr(record, k, v)
+    if context:
+        d = _dictify_context(context)
+        # Copy the context values directly onto the record so they can be
+        # used by the formatting strings.
+        for k, v in d.items():
+            setattr(record, k, v)
+
     return context
+
+
+def _ensure_unicode(msg):
+    """Do our best to turn the input argument into a unicode object.
+    """
+    if isinstance(msg, six.text_type):
+        return msg
+    if not isinstance(msg, six.binary_type):
+        return six.text_type(msg)
+    return encodeutils.safe_decode(
+        msg,
+        incoming='utf-8',
+        errors='xmlcharrefreplace')
 
 
 class _ReplaceFalseValue(dict):
@@ -177,11 +203,17 @@ class ContextFormatter(logging.Formatter):
     def format(self, record):
         """Uses contextstring if request_id is set, otherwise default."""
 
-        # NOTE(jecarey): If msg is not unicode, coerce it into unicode
-        #                before it can get to the python logging and
-        #                possibly cause string encoding trouble
-        if not isinstance(record.msg, six.text_type):
-            record.msg = six.text_type(record.msg)
+        if six.PY2:
+            should_use_unicode = True
+            for arg in record.args:
+                try:
+                    six.text_type(arg)
+                except UnicodeDecodeError:
+                    should_use_unicode = False
+                    break
+            if (not isinstance(record.msg, six.text_type)
+                    and should_use_unicode):
+                record.msg = _ensure_unicode(record.msg)
 
         # store project info
         record.project = self.project
@@ -236,7 +268,7 @@ class ContextFormatter(logging.Formatter):
 
         # Set the "user_identity" value of "logging_context_format_string"
         # by using "logging_user_identity_format" and
-        # "to_dict()" of oslo.context.
+        # get_logging_values of oslo.context.
         if context:
             record.user_identity = (
                 self.conf.logging_user_identity_format %
