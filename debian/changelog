@@ -7,6 +7,7 @@ python-oslo.log (3.11.0-2) UNRELEASED; urgency=medium
 
   [ Thomas Goirand ]
   * Drop python-oslo-* transition packages not needed since Xenial is out.
+  * Switch to pkgos-dh_auto_{test,install}.
 
  -- Thomas Goirand <zigo@debian.org>  Fri, 01 Jul 2016 15:06:26 +0000
 
