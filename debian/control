@@ -118,30 +118,3 @@ Description: OpenStack logging configuration library - doc
  support for context specific logging (like resource id's etc).
  .
  This package contains the documentation.
-
-Package: python-oslo-log
-Section: oldlibs
-Priority: extra
-Architecture: all
-Depends: python-oslo.log,
-         ${misc:Depends},
-Description: transitional dummy package for python-oslo-log
- This transitional package to python-oslo.log is safe to remove.
-
-Package: python-oslo-log-doc
-Section: oldlibs
-Priority: extra
-Architecture: all
-Depends: python-oslo.log-doc,
-         ${misc:Depends},
-Description: transitional dummy package for python-oslo-log-doc
- This transitional package to python-oslo.log-doc is safe to remove.
-
-Package: python3-oslo-log
-Section: oldlibs
-Priority: extra
-Architecture: all
-Depends: python3-oslo.log,
-         ${misc:Depends},
-Description: transitional dummy package for python3-oslo-log
- This transitional package to python3-oslo.log is safe to remove.
