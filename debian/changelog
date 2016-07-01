@@ -1,4 +1,4 @@
-python-oslo.log (3.11.0-2) UNRELEASED; urgency=medium
+python-oslo.log (3.11.0-1) experimental; urgency=medium
 
   [ David Della Vecchia ]
   * New upstream release.
