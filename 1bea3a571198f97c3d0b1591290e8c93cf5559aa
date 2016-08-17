@@ -1,0 +1,8 @@
+Code-Review+2: Alexis Lee <lxsli@hpe.com>
+Workflow+1: Alexis Lee <lxsli@hpe.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 24 Jun 2016 09:14:07 +0000
+Reviewed-on: https://review.openstack.org/333696
+Project: openstack/deb-oslo.log
+Branch: refs/heads/master

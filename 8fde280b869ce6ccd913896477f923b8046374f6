@@ -1,0 +1,8 @@
+Code-Review+2: Doug Hellmann <doug@doughellmann.com>
+Workflow+1: Joshua Harlow <jxharlow@godaddy.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Mon, 11 Jul 2016 16:55:50 +0000
+Reviewed-on: https://review.openstack.org/293561
+Project: openstack/deb-oslo.log
+Branch: refs/heads/master

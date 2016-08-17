@@ -1,0 +1,8 @@
+Code-Review+2: ChangBo Guo(gcb) <glongwave@gmail.com>
+Workflow+1: ChangBo Guo(gcb) <glongwave@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 01 Jul 2016 03:31:41 +0000
+Reviewed-on: https://review.openstack.org/336214
+Project: openstack/deb-oslo.log
+Branch: refs/heads/master
