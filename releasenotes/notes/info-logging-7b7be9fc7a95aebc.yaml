@@ -1,4 +1,0 @@
----
-fixes:
-  - When removing the "verbose" option, the default logging level was set to
-    "WARNING" by mistake. Fixed it back to "INFO".
